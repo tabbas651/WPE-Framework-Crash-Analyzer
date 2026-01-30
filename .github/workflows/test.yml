@@ -1,0 +1,314 @@
+name: WPE Crash Analyzer CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  PYTHON_VERSION: 3.9
+
+jobs:
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov flake8
+        
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+    - name: Test application startup
+      run: |
+        # Test if the application can start without errors
+        timeout 10s python app.py &
+        sleep 5
+        curl -f http://localhost:5000/health || exit 1
+        
+    - name: Test API endpoints
+      run: |
+        # Start application in background
+        python app.py &
+        sleep 5
+        
+        # Test health endpoint
+        curl -f http://localhost:5000/health
+        
+        # Test API analyze endpoint with sample data
+        curl -X POST http://localhost:5000/api/analyze \
+          -H "Content-Type: application/json" \
+          -d '{"core_log": "test log content", "include_phase2": false}' \
+          -f
+
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Create Dockerfile
+      run: |
+        cat > Dockerfile << 'EOF'
+        FROM python:3.9-slim
+        
+        WORKDIR /app
+        
+        # Install system dependencies
+        RUN apt-get update && apt-get install -y \
+            curl \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # Copy requirements and install Python dependencies
+        COPY requirements.txt .
+        RUN pip install --no-cache-dir -r requirements.txt
+        
+        # Copy application code
+        COPY . .
+        
+        # Create uploads directory
+        RUN mkdir -p uploads
+        
+        # Expose port
+        EXPOSE 5000
+        
+        # Health check
+        HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+          CMD curl -f http://localhost:5000/health || exit 1
+        
+        # Run application
+        CMD ["python", "app.py"]
+        EOF
+        
+    - name: Build Docker image
+      run: |
+        docker build -t wpe-crash-analyzer:${{ github.sha }} .
+        docker tag wpe-crash-analyzer:${{ github.sha }} wpe-crash-analyzer:latest
+        
+    - name: Test Docker image
+      run: |
+        # Run container in background
+        docker run -d --name test-container -p 5000:5000 wpe-crash-analyzer:latest
+        
+        # Wait for container to start
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:5000/health
+        
+        # Clean up
+        docker stop test-container
+        docker rm test-container
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, build-docker]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Deploy to staging (simulation)
+      run: |
+        echo "íº€ Deploying WPE Crash Analyzer to staging environment..."
+        echo "âœ… Application URL: https://staging-wpe-analyzer.example.com"
+        echo "í³Š Phase 1 & 2 analysis available"
+        
+        # In real deployment, you would:
+        # - Deploy to staging server
+        # - Update environment variables
+        # - Run database migrations if needed
+        # - Perform smoke tests
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, build-docker]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Deploy to production (simulation)
+      run: |
+        echo "í¼Ÿ Deploying WPE Crash Analyzer to production environment..."
+        echo "í´’ Production deployment requires manual approval"
+        echo "âœ… Application URL: https://wpe-analyzer.example.com"
+        echo "í³ˆ Phase 1 & 2 analysis ready for production use"
+        
+        # In real deployment, you would:
+        # - Deploy to production server
+        # - Update DNS records
+        # - Set production environment variables
+        # - Perform health checks
+        # - Notify teams
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: build-docker
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies and testing tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install locust
+        
+    - name: Create performance test
+      run: |
+        cat > locustfile.py << 'EOF'
+        from locust import HttpUser, task, between
+        import json
+        
+        class WPECrashAnalyzerUser(HttpUser):
+            wait_time = between(1, 3)
+            
+            @task(3)
+            def health_check(self):
+                self.client.get("/health")
+            
+            @task(1)
+            def home_page(self):
+                self.client.get("/")
+            
+            @task(2)
+            def analyze_sample_crash(self):
+                payload = {
+                    "core_log": "Sample crash log for testing...",
+                    "wpe_log": "",
+                    "include_phase2": True
+                }
+                self.client.post("/api/analyze", 
+                                json=payload,
+                                headers={"Content-Type": "application/json"})
+        EOF
+        
+    - name: Run performance tests
+      run: |
+        # Start application
+        python app.py &
+        sleep 5
+        
+        # Run basic load test
+        locust -f locustfile.py --headless -u 10 -r 2 -t 30s --host=http://localhost:5000
+        
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit
+        
+    - name: Check for known security vulnerabilities
+      run: |
+        safety check -r requirements.txt
+        
+    - name: Run bandit security linter
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        
+    - name: Upload security report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-report
+        path: bandit-report.json
+
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-production, performance-test, security-scan]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Notify deployment status
+      run: |
+        if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+          echo "âœ… WPE Crash Analyzer successfully deployed to production!"
+          echo "í´— Access at: https://wpe-analyzer.example.com"
+          echo "í³Š Phase 1 & 2 analysis available"
+          echo "í´ Thunder vs Plugin ownership determination ready"
+        else
+          echo "âŒ Deployment failed. Check logs for details."
+        fi
