@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Logs - WPE Crash Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+        }
+        .file-input {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-bug"></i> WPE Crash Analyzer
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-upload"></i> Upload Crash Log Files</h4>
+                        <small class="text-muted">Phase 1: Crash Discovery & Process Identification</small>
+                    </div>
+                    <div class="card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="post" enctype="multipart/form-data" id="uploadForm">
+                            <div class="upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5>Select Log Files for Analysis</h5>
+                                <p class="text-muted">Upload core_log.txt and wpeframework logs</p>
+                                
+                                <div class="file-input">
+                                    <label for="core_log" class="form-label">
+                                        <strong>Core Log File</strong> (Required)
+                                    </label>
+                                    <input type="file" class="form-control" id="core_log" name="core_log" 
+                                           accept=".txt,.log" required>
+                                    <div class="form-text">core_log.txt or similar crash dump file</div>
+                                </div>
+
+                                <div class="file-input">
+                                    <label for="wpe_log" class="form-label">
+                                        <strong>WPE Framework Log</strong> (Optional)
+                                    </label>
+                                    <input type="file" class="form-control" id="wpe_log" name="wpe_log" 
+                                           accept=".txt,.log">
+                                    <div class="form-text">wpeframework.log or related application log</div>
+                                </div>
+
+                                <div class="form-check mt-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_phase2" name="enable_phase2" checked>
+                                    <label class="form-check-label" for="enable_phase2">
+                                        <strong>Enable Phase 2 Analysis</strong> (Thunder vs Plugin Responsibility)
+                                    </label>
+                                    <div class="form-text">Determines ownership responsibility and provides escalation recommendations</div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
+                                    <i class="fas fa-search"></i> Analyze Crash Logs
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-4">
+                            <h6>Analysis Phases Available:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>Phase 1:</strong> Extract device info, crashed process, signal, and crash context</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Phase 2:</strong> Determine Thunder vs Plugin ownership responsibility</li>
+                                <li><i class="fas fa-times text-muted"></i> <strong>Phase 3-7:</strong> Advanced boundary analysis and scenarios (Coming Soon)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6><i class="fas fa-info-circle"></i> Supported File Types</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Required Files:</strong>
+                                <ul>
+                                    <li>core_log.txt</li>
+                                    <li>stacktrace-content.txt</li>
+                                    <li>Any crash dump file</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Optional Files:</strong>
+                                <ul>
+                                    <li>wpeframework.log</li>
+                                    <li>messages.txt</li>
+                                    <li>Plugin-specific logs</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            btn.disabled = true;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - WPE Crash Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .confidence-high { color: #28a745; }
+        .confidence-medium { color: #ffc107; }
+        .confidence-low { color: #dc3545; }
+        .result-section { margin-bottom: 30px; }
+        .log-entry { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-left: 4px solid #007bff; 
+            margin: 5px 0; 
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-bug"></i> WPE Crash Analyzer
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                <a class="nav-link" href="{{ url_for('upload_logs') }}">New Analysis</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4><i class="fas fa-chart-line"></i> Crash Analysis Results</h4>
+                        <span class="badge bg-success">{{ result.phase }}</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Status and Confidence -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="alert alert-success" role="alert">
+                                    <i class="fas fa-check-circle"></i> 
+                                    <strong>Status:</strong> {{ result.status.title() }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-info" role="alert">
+                                    <i class="fas fa-thermometer-half"></i> 
+                                    <strong>Confidence:</strong> 
+                                    <span class="confidence-{{ result.confidence.lower() }}">
+                                        {{ result.confidence }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Device Information -->
+                        <div class="result-section">
+                            <h5><i class="fas fa-microchip"></i> Device Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>MAC Address</h6>
+                                            <p class="text-monospace">{{ result.device_info.mac_address }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>Image Version</h6>
+                                            <p class="text-monospace">{{ result.device_info.image_version }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Crash Details -->
+                        <div class="result-section">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Crash Details</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>Crashed Process(es)</h6>
+                                            {% for process in result.crash_details.crashed_process %}
+                                                <span class="badge bg-danger me-1">{{ process }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>Signal</h6>
+                                            <span class="badge bg-warning text-dark">{{ result.crash_details.signal }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>Crash Timestamp</h6>
+                                            <p class="text-monospace">{{ result.crash_details.timestamp }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if result.crash_details.crash_context %}
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>Additional Crash Context</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    {% for key, value in result.crash_details.crash_context.items() %}
+                                                    <tr>
+                                                        <td><strong>{{ key.replace('_', ' ').title() }}</strong></td>
+                                                        <td class="text-monospace">{{ value }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phase 2: Ownership Analysis -->
+                        {% if result.ownership_analysis %}
+                        <div class="result-section">
+                            <h5><i class="fas fa-balance-scale"></i> Phase 2: Thunder vs Plugin Responsibility</h5>
+                            
+                            <!-- Ownership Conclusion -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6>Primary Ownership</h6>
+                                            <h4 class="text-primary">{{ result.ownership_analysis.primary_ownership }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6>Ownership Confidence</h6>
+                                            <h4 class="confidence-{{ result.ownership_analysis.confidence.lower() }}">
+                                                {{ result.ownership_analysis.confidence_percentage }}%
+                                            </h4>
+                                            <small class="text-muted">({{ result.ownership_analysis.confidence }})</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6>Recommendation</h6>
+                                            <p class="text-success mb-0">{{ result.ownership_analysis.recommendation }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hypothesis -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6><i class="fas fa-lightbulb"></i> Ownership Hypothesis</h6>
+                                            <p class="mb-0">{{ result.ownership_analysis.hypothesis }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Evidence Summary -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6><i class="fas fa-search"></i> Supporting Evidence</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if result.ownership_analysis.evidence_summary %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Component</th>
+                                                                <th>Score</th>
+                                                                <th>Key Evidence Patterns</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for evidence in result.ownership_analysis.evidence_summary %}
+                                                            <tr>
+                                                                <td><strong>{{ evidence.category }}</strong></td>
+                                                                <td>
+                                                                    <span class="badge bg-secondary">{{ evidence.score }}</span>
+                                                                </td>
+                                                                <td>
+                                                                    {% for pattern in evidence.key_patterns %}
+                                                                        <span class="badge bg-light text-dark me-1">{{ pattern }}</span>
+                                                                    {% endfor %}
+                                                                </td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% else %}
+                                                <div class="alert alert-warning" role="alert">
+                                                    No clear ownership evidence patterns found in logs
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Phase 1: Crash Context -->
+                        <div class="result-section">
+                            <h5><i class="fas fa-file-alt"></i> Crash Context (±10 lines around signal)</h5>
+                            {% if result.crash_details.last_meaningful_logs %}
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 0.85rem; white-space: pre-wrap; overflow-x: auto;">{% for log_entry in result.crash_details.last_meaningful_logs %}{% if " >>> " in log_entry %}<span style="background-color: #ffeb3b; color: #d32f2f; font-weight: bold;">{{ log_entry }}</span>{% else %}<span style="color: #333;">{{ log_entry }}</span>{% endif %}
+{% endfor %}</div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle"></i> Lines marked with " >>> " indicate the signal/crash point
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning" role="alert">
+                                    No meaningful log entries found around the crash signal
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="result-section">
+                            <h5><i class="fas fa-clipboard-list"></i> Phase 1 Summary</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Device MAC</strong></td>
+                                            <td>{{ result.device_info.mac_address }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Image Version</strong></td>
+                                            <td>{{ result.device_info.image_version }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Crashed Process</strong></td>
+                                            <td>{{ ', '.join(result.crash_details.crashed_process) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Signal</strong></td>
+                                            <td>{{ result.crash_details.signal }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Timestamp</strong></td>
+                                            <td>{{ result.crash_details.timestamp }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Analysis Confidence</strong></td>
+                                            <td>
+                                                <span class="confidence-{{ result.confidence.lower() }}">
+                                                    {{ result.confidence }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 mt-4">
+                            <a href="{{ url_for('upload_logs') }}" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Analyze Another Crash
+                            </a>
+                            <button class="btn btn-secondary" onclick="downloadReport()">
+                                <i class="fas fa-download"></i> Download Report
+                            </button>
+                            <button class="btn btn-info" onclick="copyToClipboard()">
+                                <i class="fas fa-copy"></i> Copy Summary
+                            </button>
+                        </div>
+
+                        <!-- Next Phase Info -->
+                        <div class="alert alert-info mt-4" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Next Steps:</strong> Phase 2 will determine Thunder vs Plugin responsibility. 
+                            This feature will be available in the next update.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function downloadReport() {
+            const reportData = {{ result|tojson }};
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'crash_analysis_report_' + new Date().toISOString().slice(0,10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            const summary = `WPE Framework Crash Analysis - Phase 1
+Device MAC: {{ result.device_info.mac_address }}
+Image Version: {{ result.device_info.image_version }}
+Crashed Process: {{ ', '.join(result.crash_details.crashed_process) }}
+Signal: {{ result.crash_details.signal }}
+Timestamp: {{ result.crash_details.timestamp }}
+Confidence: {{ result.confidence }}`;
+
+            navigator.clipboard.writeText(summary).then(() => {
+                alert('Summary copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
