@@ -1,0 +1,255 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Thunder Framework Core and Plugin patterns for crash analysis",
+    "last_updated": "2026-02-10",
+    "component_category": "thunder",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "thunder_core": {
+      "description": "Thunder Framework core component patterns",
+      "patterns": [
+        {
+          "id": "tc001",
+          "pattern": "WPEFramework.*Core::.*(?:crash|abort|signal|fault)",
+          "description": "Thunder core crash",
+          "confidence": "high",
+          "category": "framework_core",
+          "escalation_team": "Thunder Core Framework Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tc002",
+          "pattern": "Core::WorkerPool.*(?:crash|abort|assert)",
+          "description": "Worker pool crash",
+          "confidence": "high",
+          "category": "threading",
+          "escalation_team": "Thunder Core Framework Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tc003",
+          "pattern": "Thunder.*Framework.*(?:assert|abort).*core",
+          "description": "Framework assertion failure",
+          "confidence": "high",
+          "category": "framework_assert",
+          "escalation_team": "Thunder Core Framework Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tc004",
+          "pattern": "MessageDispatcher.*(?:failure|crash|abort)",
+          "description": "Messaging failure",
+          "confidence": "medium",
+          "category": "messaging",
+          "escalation_team": "Thunder Core Framework Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tc005",
+          "pattern": "WPEFramework.*(?:startup|initialization).*failed",
+          "description": "Framework startup failure",
+          "confidence": "medium",
+          "category": "initialization",
+          "escalation_team": "Thunder Core Framework Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tc006",
+          "pattern": "Thunder.*(?:error|exception)",
+          "description": "Thunder general error",
+          "confidence": "low",
+          "category": "general_error",
+          "escalation_team": "Thunder Core Framework Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "thunder_plugins": {
+      "description": "Thunder Plugin-specific patterns",
+      "patterns": [
+        {
+          "id": "tp001",
+          "pattern": "\\[([^\\]]+Plugin)\\].*(?:pure\\s+virtual\\s+method\\s+called|terminate\\s+called)",
+          "description": "Specific plugin crash",
+          "confidence": "high",
+          "category": "plugin_crash",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp002",
+          "pattern": "Activated\\s+plugin\\s+\\[([^\\]]+)\\].*(?:Signal\\s+received|segmentation\\s+fault)",
+          "description": "Plugin activation crash",
+          "confidence": "high",
+          "category": "plugin_activation",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp003",
+          "pattern": "org\\.rdk\\.\\w+Plugin.*(?:pure\\s+virtual|terminate\\s+called|Signal\\s+received)",
+          "description": "RDK plugin crash",
+          "confidence": "high",
+          "category": "rdk_plugin",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp004",
+          "pattern": "lib\\w+Plugin\\.so.*(?:crash|abort|signal|fault)",
+          "description": "Plugin library crash",
+          "confidence": "high",
+          "category": "plugin_library",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp005",
+          "pattern": "plugin.*Initialize\\(\\).*(?:failed|crash|abort)",
+          "description": "Plugin init failure",
+          "confidence": "medium",
+          "category": "plugin_init",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp006",
+          "pattern": "plugin.*Deinitialize\\(\\).*(?:failed|crash|abort)",
+          "description": "Plugin deinit failure",
+          "confidence": "medium",
+          "category": "plugin_deinit",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp007",
+          "pattern": "UserSettings.*pure\\s+virtual|DisplaySettings.*pure\\s+virtual",
+          "description": "Common plugin virtual error",
+          "confidence": "medium",
+          "category": "plugin_virtual",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tp008",
+          "pattern": "plugin.*(?:exception|error)",
+          "description": "Plugin general error",
+          "confidence": "low",
+          "category": "plugin_general",
+          "escalation_team": "Thunder Plugin Development Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "comrpc_layer": {
+      "description": "COMRPC communication layer patterns",
+      "patterns": [
+        {
+          "id": "cr001",
+          "pattern": "COMRPC::Invoke.*(?:crash|abort|segmentation\\s+fault)",
+          "description": "COMRPC invoke crash",
+          "confidence": "high",
+          "category": "rpc_invoke",
+          "escalation_team": "COMRPC/RPC Communication Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "cr002",
+          "pattern": "COMRPC.*boundary.*(?:violation|crash|error)",
+          "description": "COMRPC boundary issue",
+          "confidence": "high",
+          "category": "rpc_boundary",
+          "escalation_team": "COMRPC/RPC Communication Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "cr003",
+          "pattern": "COMRPC.*(?:timeout|failed|error)",
+          "description": "COMRPC communication error",
+          "confidence": "medium",
+          "category": "rpc_communication",
+          "escalation_team": "COMRPC/RPC Communication Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "cr004",
+          "pattern": "RPC.*call.*(?:failed|timeout|crash)",
+          "description": "RPC call failure",
+          "confidence": "medium",
+          "category": "rpc_call",
+          "escalation_team": "COMRPC/RPC Communication Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed patterns via chat interface",
+      "patterns": [
+        {
+          "id": "user_20260215_235820",
+          "pattern": "pure virtual method called",
+          "description": " this is UserSettings plugin ",
+          "confidence": "high",
+          "category": "Plugin Init",
+          "escalation_team": "User Defined",
+          "added_by": "user_chat",
+          "created_date": "2026-02-15"
+        },
+        {
+          "id": "user_20260216_013537",
+          "pattern": "pure virtual method called",
+          "description": "this might be USerSettings plugin issue",
+          "confidence": "low",
+          "category": "Plugin Init",
+          "escalation_team": "User Defined",
+          "added_by": "user_chat",
+          "created_date": "2026-02-16"
+        },
+        {
+          "id": "user_20260216_095213",
+          "pattern": "pure virtual method called",
+          "description": "this is user settings plugin",
+          "confidence": "medium",
+          "category": "Plugin Init",
+          "escalation_team": "User Defined",
+          "added_by": "user_chat",
+          "created_date": "2026-02-16"
+        },
+        {
+          "id": "user_20260216_163552",
+          "pattern": "pure virtual method called",
+          "description": "this is kruba plugin  failure",
+          "confidence": "high",
+          "category": "Plugin Init",
+          "escalation_team": "User Defined",
+          "added_by": "user_chat",
+          "created_date": "2026-02-16"
+        }
+      ]
+    }
+  }
+}

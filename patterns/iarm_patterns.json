@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "IARM Bus and Inter-process communication patterns",
+    "last_updated": "2026-02-10",  
+    "component_category": "iarm_components",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "iarm_daemon": {
+      "description": "IARMDaemonMain - Core IARM bus daemon",
+      "patterns": [
+        {
+          "id": "id001",
+          "pattern": "IARMDaemonMain.*(?:crash|abort|signal|segmentation)",
+          "description": "IARM daemon crash",
+          "confidence": "high",
+          "category": "iarm_daemon_crash",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "id002",
+          "pattern": "IARM_Bus.*(?:connection|initialization).*(?:failed|error)",
+          "description": "IARM bus initialization failure",
+          "confidence": "high",
+          "category": "iarm_init_failure",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "id003",
+          "pattern": "IARM_Bus_IsConnected.*invalid\\s+state",
+          "description": "IARM connection state error",
+          "confidence": "medium",
+          "category": "iarm_connection",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "iarm_communication": {
+      "description": "IARM Bus communication and messaging",
+      "patterns": [
+        {
+          "id": "ic001",
+          "pattern": "IARM.*(?:timeout|communication).*(?:error|failed)",
+          "description": "IARM communication timeout",
+          "confidence": "medium",
+          "category": "iarm_timeout",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "ic002",
+          "pattern": "IARM_Bus_RegisterEventHandler.*(?:failed|error)",
+          "description": "IARM event handler registration failure",
+          "confidence": "medium",
+          "category": "iarm_event_handler",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "ic003",
+          "pattern": "IARM_Bus_Call.*(?:failed|timeout|error)",
+          "description": "IARM bus call failure",
+          "confidence": "medium",
+          "category": "iarm_call_failure",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "iarm_members": {
+      "description": "IARM bus member processes communication issues",
+      "patterns": [
+        {
+          "id": "im001",
+          "pattern": "IARM.*member.*(?:Thunder_Plugins|PWRMgr|SYSMgr).*(?:disconnect|error)",
+          "description": "IARM member disconnection",
+          "confidence": "medium",
+          "category": "iarm_member_disconnect",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "im002",
+          "pattern": "HeartBeat.*(?:failed|missed|timeout)",
+          "description": "IARM heartbeat failure",
+          "confidence": "low",
+          "category": "iarm_heartbeat",
+          "escalation_team": "IARM Bus Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed IARM patterns via chat interface",
+      "patterns": []
+    }
+  }
+}

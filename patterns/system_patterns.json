@@ -1,0 +1,119 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "System services and utility patterns",
+    "last_updated": "2026-02-10",
+    "component_category": "system_services",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "deep_sleep_manager": {
+      "description": "deepSleepMgrMain - Deep sleep and power management",
+      "patterns": [
+        {
+          "id": "ds001",
+          "pattern": "deepSleepMgrMain.*(?:crash|abort|signal)",
+          "description": "Deep sleep manager crash",
+          "confidence": "high",
+          "category": "deep_sleep_crash",
+          "escalation_team": "Power Management Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "ds002",
+          "pattern": "deep.*sleep.*(?:transition|state).*(?:failed|error)",
+          "description": "Deep sleep transition error",
+          "confidence": "medium",
+          "category": "sleep_transition",
+          "escalation_team": "Power Management Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "parodus": {
+      "description": "parodus - WebPA client",
+      "patterns": [
+        {
+          "id": "par001",
+          "pattern": "parodus.*(?:crash|abort|signal)",
+          "description": "Parodus service crash",
+          "confidence": "high",
+          "category": "parodus_crash",
+          "escalation_team": "WebPA Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "par002",
+          "pattern": "parodus.*(?:connection|websocket).*(?:failed|closed|error)",
+          "description": "Parodus connection error",
+          "confidence": "medium",
+          "category": "parodus_connection",
+          "escalation_team": "WebPA Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "lighttpd": {
+      "description": "lighttpd - HTTP server",
+      "patterns": [
+        {
+          "id": "http001",
+          "pattern": "lighttpd.*(?:crash|abort|signal)",
+          "description": "HTTP server crash",
+          "confidence": "high",
+          "category": "http_crash",
+          "escalation_team": "Web Services Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "http002",
+          "pattern": "lighttpd.*(?:bind|listen).*(?:failed|error)",
+          "description": "HTTP server bind error",
+          "confidence": "medium",
+          "category": "http_bind",
+          "escalation_team": "Web Services Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "dnsmasq": {
+      "description": "dnsmasq - DNS and DHCP server",
+      "patterns": [
+        {
+          "id": "dns001",
+          "pattern": "dnsmasq.*(?:crash|abort|signal)",
+          "description": "DNS/DHCP server crash",
+          "confidence": "high",
+          "category": "dns_crash",
+          "escalation_team": "Network Infrastructure Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "dns002",
+          "pattern": "dnsmasq.*(?:bind|interface).*(?:failed|error)",
+          "description": "DNS interface bind error",
+          "confidence": "medium",
+          "category": "dns_bind",
+          "escalation_team": "Network Infrastructure Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed system service patterns via chat interface",
+      "patterns": []
+    }
+  }
+}

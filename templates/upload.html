@@ -7,19 +7,25 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .upload-area {
-            border: 2px dashed #dee2e6;
-            border-radius: 10px;
-            padding: 40px;
-            text-align: center;
-            transition: border-color 0.3s;
+        .phase-section {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-        .upload-area:hover {
-            border-color: #007bff;
+        .phase-header {
+            color: #0d6efd;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
-        .file-input {
-            margin: 20px 0;
+        .file-info {
+            font-size: 0.9em;
+            color: #6c757d;
         }
+        .size-warning { color: #fd7e14; }
+        .size-error { color: #dc3545; }
+        .size-ok { color: #198754; }
     </style>
 </head>
 <body>
@@ -36,11 +42,11 @@
 
     <div class="container my-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
+            <div class="col-lg-8">
+                <div class="card shadow">
                     <div class="card-header">
-                        <h4><i class="fas fa-upload"></i> Upload Crash Log Files</h4>
-                        <small class="text-muted">Phase 1: Crash Discovery & Process Identification</small>
+                        <h4 class="mb-0"><i class="fas fa-cloud-upload-alt"></i> Upload Log Files for Analysis</h4>
+                        <small class="text-muted">Traditional analysis with core logs and optional enhanced multi-log analysis</small>
                     </div>
                     <div class="card-body">
                         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -53,81 +59,137 @@
                                 {% endfor %}
                             {% endif %}
                         {% endwith %}
-
-                        <form method="post" enctype="multipart/form-data" id="uploadForm">
-                            <div class="upload-area">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                <h5>Select Log Files for Analysis</h5>
-                                <p class="text-muted">Upload core_log.txt and wpeframework logs</p>
+                        
+                        <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                            
+                            <!-- Phase 1 & 2.1: Traditional Upload -->
+                            <div class="phase-section">
+                                <div class="phase-header">
+                                    <h5><i class="fas fa-layer-group"></i> Phase 1 – Crash Discovery & Process Identification</h5>
+                                    <small>Upload core logs for crash discovery and Thunder vs Plugin responsibility analysis</small>
+                                </div>
                                 
-                                <div class="file-input">
-                                    <label for="core_log" class="form-label">
-                                        <strong>Core Log File</strong> (Required)
+                                <!-- Core Log File -->
+                                <div class="mb-3">
+                                    <label for="core_log_file" class="form-label">
+                                        <i class="fas fa-file-alt"></i> Core Log File <span class="text-danger">*</span>
                                     </label>
-                                    <input type="file" class="form-control" id="core_log" name="core_log" 
+                                    <input type="file" class="form-control" id="core_log_file" name="core_log_file" 
                                            accept=".txt,.log" required>
-                                    <div class="form-text">core_log.txt or similar crash dump file</div>
+                                    <div class="form-text">Upload core_log.txt or similar crash log file</div>
+                                    <div id="core_file_info" class="file-info mt-1"></div>
                                 </div>
-
-                                <div class="file-input">
-                                    <label for="wpe_log" class="form-label">
-                                        <strong>WPE Framework Log</strong> (Optional)
+                                
+                                <!-- WPE Framework Log File -->
+                                <div class="mb-3">
+                                    <label for="wpe_log_file" class="form-label">
+                                        <i class="fas fa-file-code"></i> WPE Framework Log
                                     </label>
-                                    <input type="file" class="form-control" id="wpe_log" name="wpe_log" 
+                                    <input type="file" class="form-control" id="wpe_log_file" name="wpe_log_file" 
                                            accept=".txt,.log">
-                                    <div class="form-text">wpeframework.log or related application log</div>
+                                    <div class="form-text">Upload wpeframework.log for enhanced Thunder analysis</div>
+                                    <div id="wpe_file_info" class="file-info mt-1"></div>
                                 </div>
-
-                                <div class="form-check mt-3">
-                                    <input class="form-check-input" type="checkbox" id="enable_phase2" name="enable_phase2" checked>
-                                    <label class="form-check-label" for="enable_phase2">
-                                        <strong>Enable Phase 2 Analysis</strong> (Thunder vs Plugin Responsibility)
+                                
+                                <!-- Version File -->
+                                <div class="mb-3">
+                                    <label for="version_file" class="form-label">
+                                        <i class="fas fa-info-circle"></i> Version File
                                     </label>
-                                    <div class="form-text">Determines ownership responsibility and provides escalation recommendations</div>
+                                    <input type="file" class="form-control" id="version_file" name="version_file" 
+                                           accept=".txt">
+                                    <div class="form-text">Upload version.txt for device information</div>
+                                    <div id="version_file_info" class="file-info mt-1"></div>
                                 </div>
                             </div>
-
-                            <div class="d-grid gap-2 mt-4">
+                            
+                            <!-- Phase 2.2: Enhanced Multi-log Analysis -->
+                            <div class="phase-section">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_enhanced_analysis" 
+                                           name="enable_enhanced_analysis">
+                                    <label class="form-check-label" for="enable_enhanced_analysis">
+                                        <strong><i class="fas fa-plus-circle text-primary"></i> Enable Phase 2.2: Enhanced Multi-Log Directory Analysis</strong>
+                                    </label>
+                                </div>
+                                <div class="form-text mb-3">Enable this for comprehensive analysis when crash context is not found in core logs alone</div>
+                                
+                                <div id="enhanced_analysis_section" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Enhanced Analysis:</strong> Upload additional log files when crash context is unclear from core logs alone.
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="additional_logs" class="form-label">
+                                            <i class="fas fa-folder-open"></i> Additional Log Files
+                                        </label>
+                                        <input type="file" class="form-control" id="additional_logs" name="additional_logs" 
+                                               accept=".txt,.log,.out,.err,.trace" multiple webkitdirectory directory>
+                                        <div class="form-text">Select a logs directory or multiple log files for comprehensive analysis</div>
+                                        <div id="enhanced_file_info" class="file-info mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Phase 3: Stack Trace Analysis -->
+                            <div class="phase-section">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_phase3" name="enable_phase3">
+                                    <label class="form-check-label" for="enable_phase3">
+                                        <strong><i class="fas fa-code text-success"></i> Enable Phase 3: Stack Trace Analysis</strong>
+                                    </label>
+                                </div>
+                                <div class="form-text mb-3">For detailed source code analysis (when ownership is confirmed)</div>
+                                
+                                <div id="phase3_section" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="stacktrace_file" class="form-label">
+                                            <i class="fas fa-list-ol"></i> Stack Trace File
+                                        </label>
+                                        <input type="file" class="form-control" id="stacktrace_file" name="stacktrace_file" 
+                                               accept=".txt,.log,.trace">
+                                        <div class="form-text">Upload stack trace or backtrace file for detailed analysis</div>
+                                        <div id="stacktrace_file_info" class="file-info mt-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- File Size Summary -->
+                            <div id="file_size_summary" class="mb-3" style="display: none;">
+                                <div class="alert alert-secondary">
+                                    <small><i class="fas fa-info-circle"></i> <span id="size_summary"></span></small>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
                                     <i class="fas fa-search"></i> Analyze Crash Logs
                                 </button>
                             </div>
                         </form>
-
-                        <div class="mt-4">
-                            <h6>Analysis Phases Available:</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-check text-success"></i> <strong>Phase 1:</strong> Extract device info, crashed process, signal, and crash context</li>
-                                <li><i class="fas fa-check text-success"></i> <strong>Phase 2:</strong> Determine Thunder vs Plugin ownership responsibility</li>
-                                <li><i class="fas fa-times text-muted"></i> <strong>Phase 3-7:</strong> Advanced boundary analysis and scenarios (Coming Soon)</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
-
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h6><i class="fas fa-info-circle"></i> Supported File Types</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Required Files:</strong>
-                                <ul>
-                                    <li>core_log.txt</li>
-                                    <li>stacktrace-content.txt</li>
-                                    <li>Any crash dump file</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Optional Files:</strong>
-                                <ul>
-                                    <li>wpeframework.log</li>
-                                    <li>messages.txt</li>
-                                    <li>Plugin-specific logs</li>
-                                </ul>
+            </div>
+        </div>
+        
+        <!-- Progress Modal -->
+        <div class="modal fade" id="progressModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <div class="mb-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
+                        <h5 id="progress_title">Processing Analysis...</h5>
+                        <div class="progress mb-3">
+                            <div id="progress_bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p id="progress_message" class="text-muted">Starting analysis...</p>
                     </div>
                 </div>
             </div>
@@ -136,11 +198,209 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function() {
+        const maxFileSize = 50 * 1024 * 1024; // 50MB per file
+        const maxTotalSize = 500 * 1024 * 1024; // 500MB total
+        
+        // File size validation and display
+        function validateAndDisplayFileSize(input, infoElementId) {
+            const infoElement = document.getElementById(infoElementId);
+            if (!input.files.length) {
+                infoElement.innerHTML = '';
+                return true;
+            }
+            
+            const file = input.files[0];
+            const sizeText = formatFileSize(file.size);
+            
+            if (file.size > maxFileSize) {
+                infoElement.innerHTML = `<span class="size-error"><i class="fas fa-exclamation-triangle"></i> ${sizeText} - Too large! Maximum 50MB per file</span>`;
+                return false;
+            } else if (file.size > 10 * 1024 * 1024) {
+                infoElement.innerHTML = `<span class="size-warning"><i class="fas fa-exclamation-circle"></i> ${sizeText} - Large file</span>`;
+                return true;
+            } else {
+                infoElement.innerHTML = `<span class="size-ok"><i class="fas fa-check-circle"></i> ${sizeText}</span>`;
+                return true;
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function updateSizeSummary() {
+            let totalSize = 0;
+            let fileCount = 0;
+            const summaryElement = document.getElementById('size_summary');
+            const summaryContainer = document.getElementById('file_size_summary');
+            
+            // Count individual files
+            ['core_log_file', 'wpe_log_file', 'version_file', 'stacktrace_file'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.files.length > 0) {
+                    totalSize += input.files[0].size;
+                    fileCount++;
+                }
+            });
+            
+            // Count additional logs
+            const additionalLogs = document.getElementById('additional_logs');
+            if (additionalLogs && additionalLogs.files.length > 0) {
+                for (let file of additionalLogs.files) {
+                    totalSize += file.size;
+                    fileCount++;
+                }
+            }
+            
+            if (fileCount > 0) {
+                const totalSizeText = formatFileSize(totalSize);
+                if (totalSize > maxTotalSize) {
+                    summaryElement.innerHTML = `<span class="text-danger">Total: ${totalSizeText} (${fileCount} files) - Exceeds 500MB limit!</span>`;
+                } else {
+                    summaryElement.innerHTML = `Total: ${totalSizeText} (${fileCount} files)`;
+                }
+                summaryContainer.style.display = 'block';
+            } else {
+                summaryContainer.style.display = 'none';
+            }
+        }
+        
+        // File input event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Individual file validation
+            ['core_log_file', 'wpe_log_file', 'version_file', 'stacktrace_file'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('change', function() {
+                        validateAndDisplayFileSize(this, id + '_info');
+                        updateSizeSummary();
+                    });
+                }
+            });
+            
+            // Enhanced analysis toggle
+            document.getElementById('enable_enhanced_analysis').addEventListener('change', function() {
+                document.getElementById('enhanced_analysis_section').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // Phase 3 toggle
+            document.getElementById('enable_phase3').addEventListener('change', function() {
+                document.getElementById('phase3_section').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // Additional logs file handling
+            document.getElementById('additional_logs').addEventListener('change', function() {
+                const infoElement = document.getElementById('enhanced_file_info');
+                if (this.files.length > 0) {
+                    let totalSize = 0;
+                    for (let file of this.files) {
+                        totalSize += file.size;
+                    }
+                    const sizeText = formatFileSize(totalSize);
+                    infoElement.innerHTML = `<span class="size-ok"><i class="fas fa-folder"></i> ${this.files.length} files, ${sizeText} total</span>`;
+                } else {
+                    infoElement.innerHTML = '';
+                }
+                updateSizeSummary();
+            });
+        });
+        
+        // Form submission handler
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const btn = document.getElementById('analyzeBtn');
+            const coreFile = document.getElementById('core_log_file');
+            const enhancedEnabled = document.getElementById('enable_enhanced_analysis').checked;
+            const phase3Enabled = document.getElementById('enable_phase3').checked;
+            
+            // Validate core log file
+            if (!coreFile.files.length) {
+                e.preventDefault();
+                alert('Please select a core log file for analysis.');
+                return;
+            }
+            
+            // Validate file sizes
+            let totalSize = 0;
+            let hasOversizedFile = false;
+            
+            ['core_log_file', 'wpe_log_file', 'version_file', 'stacktrace_file'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.files.length > 0) {
+                    const file = input.files[0];
+                    if (file.size > maxFileSize) {
+                        hasOversizedFile = true;
+                    }
+                    totalSize += file.size;
+                }
+            });
+            
+            if (enhancedEnabled) {
+                const additionalLogs = document.getElementById('additional_logs');
+                if (additionalLogs.files.length > 0) {
+                    for (let file of additionalLogs.files) {
+                        if (file.size > maxFileSize) {
+                            hasOversizedFile = true;
+                        }
+                        totalSize += file.size;
+                    }
+                }
+            }
+            
+            if (hasOversizedFile) {
+                e.preventDefault();
+                alert('Some files exceed the 50MB limit. Please reduce file sizes.');
+                return;
+            }
+            
+            if (totalSize > maxTotalSize) {
+                e.preventDefault();
+                alert('Total upload size exceeds 500MB. Please reduce the total size.');
+                return;
+            }
+            
+            // Phase 3 validation
+            if (phase3Enabled) {
+                const stacktraceFile = document.getElementById('stacktrace_file');
+                if (!stacktraceFile.files.length) {
+                    e.preventDefault();
+                    alert('Stack trace file is required when Phase 3 analysis is enabled.');
+                    return;
+                }
+            }
+            
+            // Show progress and update button
+            showUploadProgress();
+            updateProgressBar(10, 'Processing file uploads...');
+            
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
             btn.disabled = true;
+            
+            // Progress simulation
+            setTimeout(() => updateProgressBar(30, 'Phase 1: Crash discovery...'), 500);
+            setTimeout(() => updateProgressBar(60, 'Phase 2.1: Thunder vs Plugin analysis...'), 2000);
+            if (enhancedEnabled) {
+                setTimeout(() => updateProgressBar(80, 'Phase 2.2: Enhanced multi-log analysis...'), 4000);
+            }
+            if (phase3Enabled) {
+                setTimeout(() => updateProgressBar(90, 'Phase 3: Stack trace analysis...'), 6000);
+            }
         });
+        
+        function showUploadProgress() {
+            const modal = new bootstrap.Modal(document.getElementById('progressModal'));
+            modal.show();
+        }
+        
+        function updateProgressBar(percent, message) {
+            const progressBar = document.getElementById('progress_bar');
+            const progressMessage = document.getElementById('progress_message');
+            progressBar.style.width = percent + '%';
+            progressMessage.textContent = message;
+        }
     </script>
 </body>
 </html>

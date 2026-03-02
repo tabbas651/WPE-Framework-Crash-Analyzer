@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Management - WPE Crash Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .pattern-card {
+            transition: transform 0.2s;
+            border-left: 4px solid #007bff;
+        }
+        .pattern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .confidence-high { border-left-color: #28a745; }
+        .confidence-medium { border-left-color: #ffc107; }
+        .confidence-low { border-left-color: #dc3545; }
+        .pattern-stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .code-pattern {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .search-highlight {
+            background-color: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-bug"></i> WPE Crash Analyzer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upload_logs') }}">Analyze Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('patterns') }}">Pattern Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('chat') }}">Chat Assistant</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-code-branch"></i> Pattern Management</h2>
+                <p class="text-muted">Manage failure patterns for RDK component crash analysis</p>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="pattern-stats p-4">
+                    <h4><i class="fas fa-chart-bar"></i> Pattern Statistics</h4>
+                    <div class="row">
+                        {% for component, stats in pattern_stats.items() %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card bg-transparent border border-light">
+                                <div class="card-body">
+                                    <h6 class="text-white">{{ component.replace('_', ' ').title() }}</h6>
+                                    <p class="mb-1">Total: <strong>{{ stats.total_patterns }}</strong></p>
+                                    <small>
+                                        <span class="badge bg-success">High: {{ stats.confidence_breakdown.high }}</span>
+                                        <span class="badge bg-warning">Med: {{ stats.confidence_breakdown.medium }}</span>
+                                        <span class="badge bg-danger">Low: {{ stats.confidence_breakdown.low }}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" id="searchPatterns" class="form-control" placeholder="Search patterns by description, component, or pattern text...">
+                    <button class="btn btn-outline-secondary" type="button" onclick="searchPatterns()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select id="componentFilter" class="form-select" onchange="filterPatterns()">
+                    <option value="">All Components</option>
+                    {% for component in pattern_stats.keys() %}
+                    <option value="{{ component }}">{{ component.replace('_', ' ').title() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Add New Pattern Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-plus-circle"></i> Add New Pattern</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="addPatternForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="patternComponent" class="form-label">Component</label>
+                                        <select class="form-select" id="patternComponent" required>
+                                            <option value="">Select Component</option>
+                                            <option value="thunder">Thunder Framework</option>
+                                            <option value="hal">HAL Managers</option>
+                                            <option value="iarm">IARM Components</option>
+                                            <option value="media">Media Components</option>
+                                            <option value="security">Security Components</option>
+                                            <option value="network">Network Components</option>
+                                            <option value="system">System Services</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="patternConfidence" class="form-label">Confidence Level</label>
+                                        <select class="form-select" id="patternConfidence" required>
+                                            <option value="medium" selected>Medium</option>
+                                            <option value="high">High</option>
+                                            <option value="low">Low</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patternRegex" class="form-label">Pattern (Regular Expression)</label>
+                                <input type="text" class="form-control code-pattern" id="patternRegex" 
+                                       placeholder="e.g., WPEFramework.*Core::.*crash" required>
+                                <div class="form-text">Enter a valid regular expression pattern</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patternDescription" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="patternDescription" 
+                                       placeholder="Brief description of what this pattern detects" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patternCategory" class="form-label">Category (Optional)</label>
+                                <input type="text" class="form-control" id="patternCategory" 
+                                       placeholder="e.g., framework_crash, plugin_init, etc.">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Pattern
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="testPattern()">
+                                <i class="fas fa-vial"></i> Test Pattern
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patterns Display Section -->
+        <div class="row">
+            <div class="col">
+                <div id="patternsContainer">
+                    {% for component, component_data in all_patterns.items() %}
+                    {% if component_data.patterns %}
+                    <div class="component-section" data-component="{{ component }}">
+                        <h4 class="mb-3">
+                            <i class="fas fa-folder-open"></i> {{ component.replace('_', ' ').title() }}
+                            <small class="text-muted">({{ component_data.metadata.description }})</small>
+                        </h4>
+                        
+                        {% for group_name, group_data in component_data.patterns.items() %}
+                        {% if group_data.patterns %}
+                        <div class="mb-4">
+                            <h5 class="text-secondary">{{ group_name.replace('_', ' ').title() }}</h5>
+                            <div class="row">
+                                {% for pattern in group_data.patterns %}
+                                <div class="col-md-6 col-lg-4 mb-3 pattern-item" 
+                                     data-component="{{ component }}"
+                                     data-description="{{ pattern.description.lower() }}"
+                                     data-pattern="{{ pattern.pattern.lower() }}">
+                                    <div class="card pattern-card confidence-{{ pattern.confidence }}">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                {{ pattern.description }}
+                                                <span class="badge bg-{{ 'success' if pattern.confidence == 'high' else 'warning' if pattern.confidence == 'medium' else 'danger' }}">
+                                                    {{ pattern.confidence }}
+                                                </span>
+                                            </h6>
+                                            <p class="card-text code-pattern p-2 mb-2">{{ pattern.pattern }}</p>
+                                            <small class="text-muted">
+                                                <div><strong>Category:</strong> {{ pattern.category }}</div>
+                                                <div><strong>Team:</strong> {{ pattern.escalation_team }}</div>
+                                                <div><strong>Added:</strong> {{ pattern.created_date }}</div>
+                                                {% if pattern.added_by == 'user_chat' %}
+                                                <div><span class="badge bg-info">User Added</span></div>
+                                                {% endif %}
+                                            </small>
+                                            {% if pattern.added_by == 'user_chat' %}
+                                            <div class="mt-2">
+                                                <button class="btn btn-sm btn-outline-danger" 
+                                                        onclick="deletePattern('{{ component }}', '{{ pattern.id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Pattern Modal -->
+    <div class="modal fade" id="testPatternModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Pattern</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Pattern to Test:</label>
+                        <input type="text" id="testPatternInput" class="form-control code-pattern" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="testLogContent" class="form-label">Log Content (paste log excerpt)</label>
+                        <textarea class="form-control" id="testLogContent" rows="8" 
+                                  placeholder="Paste log content here to test the pattern..."></textarea>
+                    </div>
+                    <div id="testResults" class="mt-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="runPatternTest()">Run Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality
+        function searchPatterns() {
+            const searchTerm = document.getElementById('searchPatterns').value.toLowerCase();
+            const patternItems = document.querySelectorAll('.pattern-item');
+            
+            patternItems.forEach(item => {
+                const description = item.getAttribute('data-description');
+                const pattern = item.getAttribute('data-pattern');
+                
+                if (description.includes(searchTerm) || pattern.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    // Highlight search terms
+                    if (searchTerm) {
+                        highlightSearchTerms(item, searchTerm);
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter by component
+        function filterPatterns() {
+            const selectedComponent = document.getElementById('componentFilter').value;
+            const componentSections = document.querySelectorAll('.component-section');
+            
+            componentSections.forEach(section => {
+                const component = section.getAttribute('data-component');
+                if (!selectedComponent || component === selectedComponent) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Highlight search terms
+        function highlightSearchTerms(item, searchTerm) {
+            const cardTitle = item.querySelector('.card-title');
+            const cardText = item.querySelector('.card-text');
+            
+            if (cardTitle) {
+                cardTitle.innerHTML = cardTitle.textContent.replace(
+                    new RegExp(searchTerm, 'gi'), 
+                    match => '<span class="search-highlight">' + match + '</span>'
+                );
+            }
+        }
+
+        // Add pattern functionality
+        document.getElementById('addPatternForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                component: document.getElementById('patternComponent').value,
+                pattern: document.getElementById('patternRegex').value,
+                description: document.getElementById('patternDescription').value,
+                confidence: document.getElementById('patternConfidence').value,
+                category: document.getElementById('patternCategory').value || 'user_defined'
+            };
+            
+            fetch('/api/patterns/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Pattern added successfully!');
+                    location.reload(); // Refresh to show new pattern
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error adding pattern: ' + error);
+            });
+        };
+
+        // Test pattern functionality
+        function testPattern() {
+            const pattern = document.getElementById('patternRegex').value;
+            if (!pattern) {
+                alert('Please enter a pattern first');
+                return;
+            }
+            
+            document.getElementById('testPatternInput').value = pattern;
+            new bootstrap.Modal(document.getElementById('testPatternModal')).show();
+        }
+
+        function runPatternTest() {
+            const pattern = document.getElementById('testPatternInput').value;
+            const logContent = document.getElementById('testLogContent').value;
+            
+            if (!logContent) {
+                alert('Please provide log content to test against');
+                return;
+            }
+            
+            fetch('/api/patterns/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    pattern: pattern,
+                    log_content: logContent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('testResults');
+                if (data.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h6>✅ Test Results</h6>
+                            <p><strong>Matches found:</strong> ${data.match_count}</p>
+                            ${data.matches.length > 0 ? '<p><strong>Sample matches:</strong></p><ul>' + data.matches.map(m => '<li>' + m + '</li>').join('') + '</ul>' : ''}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6>❌ Test Failed</h6>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('testResults').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6>❌ Error</h6>
+                        <p>${error}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Delete pattern (for user-added patterns only)
+        function deletePattern(component, patternId) {
+            if (confirm('Are you sure you want to delete this pattern?')) {
+                fetch('/api/patterns/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        component: component,
+                        pattern_id: patternId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Pattern deleted successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error deleting pattern: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+            }
+        }
+
+        // Enable search on Enter key
+        document.getElementById('searchPatterns').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPatterns();
+            }
+        });
+    </script>
+</body>
+</html>

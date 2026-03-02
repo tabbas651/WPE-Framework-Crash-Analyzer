@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Security, authentication and DRM patterns",
+    "last_updated": "2026-02-10",
+    "component_category": "security_components",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "sec_manager": {
+      "description": "SecManager - Security manager and DRM",
+      "patterns": [
+        {
+          "id": "sec001",
+          "pattern": "SecManager.*(?:crash|abort|signal|segmentation)",
+          "description": "Security manager crash",
+          "confidence": "high",
+          "category": "secmgr_crash",
+          "escalation_team": "Security Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "sec002",
+          "pattern": "SecManager.*(?:DRM|license).*(?:failed|error|invalid)",
+          "description": "DRM/License error",
+          "confidence": "high",
+          "category": "drm_license",
+          "escalation_team": "Security DRM Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "sec003",
+          "pattern": "SecManager.*(?:authentication|certificate).*(?:failed|invalid|expired)",
+          "description": "Authentication/certificate error",
+          "confidence": "medium",
+          "category": "auth_cert",
+          "escalation_team": "Security Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "auth_service": {
+      "description": "authservice - Authentication service",
+      "patterns": [
+        {
+          "id": "auth001",
+          "pattern": "authservice.*(?:crash|abort|signal)",
+          "description": "Auth service crash",
+          "confidence": "high",
+          "category": "auth_crash",
+          "escalation_team": "Authentication Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "auth002",
+          "pattern": "auth.*(?:token|session).*(?:expired|invalid|failed)",
+          "description": "Authentication token/session error",
+          "confidence": "medium",
+          "category": "auth_token",
+          "escalation_team": "Authentication Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "drm_systems": {
+      "description": "DRM providers and content protection",
+      "patterns": [
+        {
+          "id": "drm001",
+          "pattern": "(?:Widevine|PlayReady|ClearKey).*(?:failed|error|invalid)",
+          "description": "DRM system error",
+          "confidence": "high",
+          "category": "drm_system",
+          "escalation_team": "Security DRM Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "drm002",
+          "pattern": "(?:HDCP|content.*protection).*(?:failed|violation|error)",
+          "description": "Content protection error",
+          "confidence": "medium",
+          "category": "content_protection",
+          "escalation_team": "Security DRM Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed security patterns via chat interface",
+      "patterns": []
+    }
+  }
+}

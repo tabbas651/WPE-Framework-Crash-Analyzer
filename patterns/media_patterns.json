@@ -1,0 +1,119 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Media streaming and audio processing patterns",
+    "last_updated": "2026-02-10",
+    "component_category": "media_components",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "rmf_streamer": {
+      "description": "rmfStreamer - RDK Media Framework streaming",
+      "patterns": [
+        {
+          "id": "rmf001",
+          "pattern": "rmfStreamer.*(?:crash|abort|signal|segmentation)",
+          "description": "RMF streamer crash",
+          "confidence": "high",
+          "category": "rmf_crash",
+          "escalation_team": "Media Streaming Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "rmf002",
+          "pattern": "RMF.*(?:pipeline|decoder).*(?:failed|error)",
+          "description": "RMF pipeline error",
+          "confidence": "high",
+          "category": "rmf_pipeline",
+          "escalation_team": "Media Streaming Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "rmf003",
+          "pattern": "rmf.*(?:buffer|memory).*(?:underrun|overflow|allocation.*failed)",
+          "description": "RMF buffer/memory issue",
+          "confidence": "medium",
+          "category": "rmf_memory", 
+          "escalation_team": "Media Streaming Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "audio_capture": {
+      "description": "audiocapturemgr - Audio capture and processing",
+      "patterns": [
+        {
+          "id": "ac001",
+          "pattern": "audiocapturemgr.*(?:crash|abort|signal)",
+          "description": "Audio capture manager crash",
+          "confidence": "high",
+          "category": "audio_crash",
+          "escalation_team": "Audio Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "ac002",
+          "pattern": "audio.*capture.*(?:device|initialization).*(?:failed|error)",
+          "description": "Audio capture device error",
+          "confidence": "medium",
+          "category": "audio_device",
+          "escalation_team": "Audio Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "led_manager": {
+      "description": "ledmgr - LED management and indicators",
+      "patterns": [
+        {
+          "id": "led001",
+          "pattern": "ledmgr.*(?:crash|abort|signal)",
+          "description": "LED manager crash",
+          "confidence": "high",
+          "category": "led_crash",
+          "escalation_team": "HAL Hardware Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "codec_issues": {
+      "description": "Media codec and decoding issues",
+      "patterns": [
+        {
+          "id": "codec001",
+          "pattern": "(?:H264|H265|VP9|AV1).*(?:decode|encode).*(?:failed|error)",
+          "description": "Video codec error",
+          "confidence": "medium",
+          "category": "video_codec",
+          "escalation_team": "Media Codec Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "codec002",
+          "pattern": "(?:AAC|MP3|AC3|DTS).*(?:decode|encode).*(?:failed|error)",
+          "description": "Audio codec error",
+          "confidence": "medium",
+          "category": "audio_codec",
+          "escalation_team": "Media Codec Team", 
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed media patterns via chat interface",
+      "patterns": []
+    }
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "HAL Managers and Hardware Abstraction Layer patterns",
+    "last_updated": "2026-02-10",
+    "component_category": "hal_managers",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "display_manager": {
+      "description": "dsMgrMain - Display Settings and Video output management",
+      "patterns": [
+        {
+          "id": "dm001",
+          "pattern": "dsMgrMain.*(?:crash|abort|signal|segmentation)",
+          "description": "Display manager crash",
+          "confidence": "high",
+          "category": "display_crash",
+          "escalation_team": "HAL Display Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "dm002",
+          "pattern": "dsHal.*(?:error|failed|crash)",
+          "description": "Display HAL error",
+          "confidence": "high",
+          "category": "display_hal",
+          "escalation_team": "HAL Display Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "dm003",
+          "pattern": "dsVideoPort.*(?:initialization|configuration).*failed",
+          "description": "Video port configuration failure",
+          "confidence": "medium",
+          "category": "video_port",
+          "escalation_team": "HAL Display Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "device_manager": {
+      "description": "mfrMgrMain - Manufacturing and device information management",
+      "patterns": [
+        {
+          "id": "mfr001",
+          "pattern": "mfrMgrMain.*(?:crash|abort|signal)",
+          "description": "Manufacturing manager crash",
+          "confidence": "high",
+          "category": "mfr_crash",
+          "escalation_team": "HAL Device Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "mfr002",
+          "pattern": "MFRLib.*(?:error|failed|initialization)",
+          "description": "MFR library error", 
+          "confidence": "medium",
+          "category": "mfr_library",
+          "escalation_team": "HAL Device Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "system_manager": {
+      "description": "sysMgrMain - System management and power state",
+      "patterns": [
+        {
+          "id": "sys001",
+          "pattern": "sysMgrMain.*(?:crash|abort|signal)",
+          "description": "System manager crash",
+          "confidence": "high",
+          "category": "system_crash",
+          "escalation_team": "HAL System Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "sys002",
+          "pattern": "SYSMgr.*(?:power|thermal).*(?:error|failed)",
+          "description": "Power/thermal management error",
+          "confidence": "medium",
+          "category": "power_thermal",
+          "escalation_team": "HAL System Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "cec_manager": {
+      "description": "CecDaemonMain - HDMI CEC communication",
+      "patterns": [
+        {
+          "id": "cec001",
+          "pattern": "CecDaemonMain.*(?:crash|abort|signal)",
+          "description": "CEC daemon crash",
+          "confidence": "high",
+          "category": "cec_crash", 
+          "escalation_team": "HAL CEC Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "cec002",
+          "pattern": "CEC.*(?:communication|protocol).*(?:error|failed)",
+          "description": "CEC communication error",
+          "confidence": "medium",
+          "category": "cec_communication",
+          "escalation_team": "HAL CEC Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "ir_manager": {
+      "description": "irMgrMain - Infrared remote control management",
+      "patterns": [
+        {
+          "id": "ir001",
+          "pattern": "irMgrMain.*(?:crash|abort|signal)",
+          "description": "IR manager crash",
+          "confidence": "high",
+          "category": "ir_crash",
+          "escalation_team": "HAL IR Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "power_manager": {
+      "description": "pwrMgrMain - Power management",
+      "patterns": [
+        {
+          "id": "pwr001",
+          "pattern": "pwrMgrMain.*(?:crash|abort|signal)",
+          "description": "Power manager crash",
+          "confidence": "high",
+          "category": "power_crash",
+          "escalation_team": "HAL Power Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed HAL patterns via chat interface",
+      "patterns": []
+    }
+  }
+}

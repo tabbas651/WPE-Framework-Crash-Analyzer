@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Network services and communication patterns",
+    "last_updated": "2026-02-10",
+    "component_category": "network_components",
+    "confidence_weights": {
+      "high": 3.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "patterns": {
+    "tr69_hostif": {
+      "description": "tr69hostif - TR-069 device management",
+      "patterns": [
+        {
+          "id": "tr001",
+          "pattern": "tr69hostif.*(?:crash|abort|signal)",
+          "description": "TR-069 host interface crash",
+          "confidence": "high",
+          "category": "tr69_crash",
+          "escalation_team": "Network Management Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tr002",
+          "pattern": "TR.*069.*(?:connection|communication).*(?:failed|timeout|error)",
+          "description": "TR-069 communication error",
+          "confidence": "medium",
+          "category": "tr69_communication",
+          "escalation_team": "Network Management Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "tr003",
+          "pattern": "TR.*069.*(?:parameter|configuration).*(?:failed|invalid)",
+          "description": "TR-069 parameter configuration error",
+          "confidence": "low",
+          "category": "tr69_config",
+          "escalation_team": "Network Management Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "xdiscovery": {
+      "description": "xdiscovery - Service discovery",
+      "patterns": [
+        {
+          "id": "xd001",
+          "pattern": "xdiscovery.*(?:crash|abort|signal)",
+          "description": "Service discovery crash",
+          "confidence": "high",
+          "category": "discovery_crash",
+          "escalation_team": "Network Services Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "xd002",
+          "pattern": "discovery.*(?:service|device).*(?:failed|timeout|not.*found)",
+          "description": "Service discovery failure",
+          "confidence": "low",
+          "category": "discovery_failure",
+          "escalation_team": "Network Services Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "bluetooth": {
+      "description": "bluetoothd - Bluetooth management",
+      "patterns": [
+        {
+          "id": "bt001",
+          "pattern": "bluetoothd.*(?:crash|abort|signal)",
+          "description": "Bluetooth daemon crash",
+          "confidence": "high",
+          "category": "bluetooth_crash",
+          "escalation_team": "Bluetooth Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        },
+        {
+          "id": "bt002",
+          "pattern": "bluetooth.*(?:pairing|connection).*(?:failed|timeout)",
+          "description": "Bluetooth connection failure",
+          "confidence": "low",
+          "category": "bluetooth_connection",
+          "escalation_team": "Bluetooth Team",
+          "added_by": "system",
+          "created_date": "2026-02-10"
+        }
+      ]
+    },
+    "user_patterns": {
+      "description": "User-contributed network patterns via chat interface",
+      "patterns": []
+    }
+  }
+}

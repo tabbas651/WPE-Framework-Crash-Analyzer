@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Assistant Chat - WPE Crash Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: 600px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            position: relative;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px 15px 0 0;
+        }
+        .chat-messages {
+            height: 460px;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+        }
+        .chat-input {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 0 0 15px 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message.bot {
+            justify-content: flex-start;
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            position: relative;
+        }
+        .message.user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-bottom-left-radius: 5px;
+        }
+        .message-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .avatar.user {
+            background: #007bff;
+            color: white;
+        }
+        .avatar.bot {
+            background: #28a745;
+            color: white;
+        }
+        .log-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .log-upload-area:hover {
+            border-color: #007bff;
+            background: #e7f3ff;
+        }
+        .log-upload-area.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .quick-action-btn {
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            background: white;
+            color: #007bff;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-action-btn:hover {
+            background: #007bff;
+            color: white;
+        }
+        .typing-indicator {
+            display: none;
+        }
+        .typing-indicator.show {
+            display: block;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        .pattern-suggestion {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .confidence-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .log-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .log-status.loaded {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .log-status.not-loaded {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-bug"></i> WPE Crash Analyzer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upload_logs') }}">Analyze Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('patterns') }}">Pattern Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('chat') }}">Chat Assistant</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h5><i class="fas fa-robot"></i> Pattern Assistant - Interactive Crash Analysis</h5>
+                        <small>Ask me about patterns, upload logs for analysis, or add new patterns</small>
+                    </div>
+                    <div id="chatMessages" class="chat-messages">
+                        <!-- Welcome Message -->
+                        <div class="message bot">
+                            <div class="avatar bot">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div>
+                                <div class="message-content">
+                                    <strong>🤖 Welcome to WPE Pattern Assistant!</strong><br><br>
+                                    I can help you with:
+                                    <ul class="mb-0 mt-2">
+                                        <li>Add new failure patterns</li>
+                                        <li>Search existing patterns</li>
+                                        <li>Analyze log content</li>
+                                        <li>Test patterns against logs</li>
+                                        <li>Get component escalation info</li>
+                                    </ul>
+                                    <br>
+                                    Type <strong>'help'</strong> for detailed commands or try the quick actions below!
+                                </div>
+                                <div class="message-time">{{ current_time }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="chat-input">
+                        <div class="quick-actions">
+                            <span class="quick-action-btn" onclick="quickAction('help')">
+                                <i class="fas fa-question"></i> Help
+                            </span>
+                            <span class="quick-action-btn" onclick="quickAction('stats')">
+                                <i class="fas fa-chart-bar"></i> Stats
+                            </span>
+                            <span class="quick-action-btn" onclick="quickAction('search crash')">
+                                <i class="fas fa-search"></i> Search Crash
+                            </span>
+                            <span class="quick-action-btn" onclick="quickAction('analyze')">
+                                <i class="fas fa-microscope"></i> Analyze Log
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="chatInput" class="form-control" 
+                                   placeholder="Type your message... (e.g., 'add thunder pattern: WebKit.*crash description: WebKit crash')"
+                                   onkeypress="handleEnterKey(event)">
+                            <button class="btn btn-primary" type="button" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Log Upload Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6><i class="fas fa-file-upload"></i> Log Content for Analysis</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="logStatus" class="log-status not-loaded">
+                            <i class="fas fa-exclamation-triangle"></i> No log content loaded
+                        </div>
+                        
+                        <div class="log-upload-area" 
+                             ondrop="handleDrop(event)" 
+                             ondragover="handleDragOver(event)"
+                             ondragenter="handleDragEnter(event)"
+                             ondragleave="handleDragLeave(event)">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h6>Drop log files here</h6>
+                            <p class="text-muted mb-3">or</p>
+                            <input type="file" id="logFileInput" accept=".txt,.log,.out" style="display: none;" onchange="handleFileSelect(event)">
+                            <button class="btn btn-outline-primary" onclick="document.getElementById('logFileInput').click()">
+                                <i class="fas fa-folder-open"></i> Choose File
+                            </button>
+                            <div class="mt-3">
+                                <small class="text-muted">Supports .txt, .log, .out files</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="logTextArea" class="form-label">Or paste log content:</label>
+                            <textarea class="form-control" id="logTextArea" rows="6" 
+                                      placeholder="Paste log content here for analysis..."
+                                      onchange="updateLogStatus()"></textarea>
+                        </div>
+                        
+                        <button class="btn btn-success w-100" onclick="loadLogContent()">
+                            <i class="fas fa-check"></i> Use This Log Content
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pattern Quick Stats -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="fas fa-info-circle"></i> Quick Stats</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 id="totalPatterns" class="text-primary">{{ total_patterns }}</h4>
+                                    <small class="text-muted">Total Patterns</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h4 id="totalComponents" class="text-success">{{ total_components }}</h4>
+                                <small class="text-muted">Components</small>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between">
+                            <span>High Confidence:</span>
+                            <span class="badge bg-success">{{ high_confidence_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Medium Confidence:</span>
+                            <span class="badge bg-warning">{{ medium_confidence_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Low Confidence:</span>
+                            <span class="badge bg-danger">{{ low_confidence_count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentLogContent = null;
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat('user', message);
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Send to backend
+            fetch('/api/chat/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    log_content: currentLogContent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                if (data.success) {
+                    addMessageToChat('bot', data.response);
+                } else {
+                    addMessageToChat('bot', '❌ Sorry, I encountered an error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                addMessageToChat('bot', '❌ Connection error. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function addMessageToChat(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatarIcon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
+            
+            messageDiv.innerHTML = `
+                <div class="avatar ${sender}">
+                    <i class="${avatarIcon}"></i>
+                </div>
+                <div>
+                    <div class="message-content">${formatMessage(message)}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function formatMessage(message) {
+            // Format markdown-style messages
+            let formatted = message
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold
+                .replace(/`(.*?)`/g, '<code class="code-inline">$1</code>')  // Inline code
+                .replace(/\n/g, '<br>')  // Line breaks
+                .replace(/•/g, '&bull;');  // Bullet points
+            
+            // Format code blocks
+            formatted = formatted.replace(/```([\s\S]*?)```/g, '<div class="code-block">$1</div>');
+            
+            // Format pattern suggestions (lines starting with numbers followed by period)
+            formatted = formatted.replace(/^(\d+\.\s+.*$)/gm, '<div class="pattern-suggestion">$1</div>');
+            
+            return formatted;
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot typing-indicator show';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="avatar bot">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <div class="message-content">
+                        <i class="fas fa-circle"></i>
+                        <i class="fas fa-circle"></i>
+                        <i class="fas fa-circle"></i>
+                        <span class="ms-2">Thinking...</span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function quickAction(action) {
+            document.getElementById('chatInput').value = action;
+            sendMessage();
+        }
+
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // File upload functionality
+        function handleDragOver(event) {
+            event.preventDefault();
+        }
+
+        function handleDragEnter(event) {
+            event.preventDefault();
+            event.target.closest('.log-upload-area').classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.target.closest('.log-upload-area').classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const uploadArea = event.target.closest('.log-upload-area');
+            uploadArea.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                readFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                readFile(file);
+            }
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('logTextArea').value = e.target.result;
+                updateLogStatus();
+            };
+            reader.readAsText(file);
+        }
+
+        function updateLogStatus() {
+            const logContent = document.getElementById('logTextArea').value;
+            const statusDiv = document.getElementById('logStatus');
+            
+            if (logContent.trim()) {
+                statusDiv.className = 'log-status loaded';
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Log content ready (click "Use This Log Content" to analyze)';
+            } else {
+                statusDiv.className = 'log-status not-loaded';
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No log content loaded';
+            }
+        }
+
+        function loadLogContent() {
+            const logContent = document.getElementById('logTextArea').value.trim();
+            
+            if (!logContent) {
+                alert('Please provide log content first');
+                return;
+            }
+            
+            currentLogContent = logContent;
+            const statusDiv = document.getElementById('logStatus');
+            statusDiv.className = 'log-status loaded';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Log content loaded and ready for analysis';
+            
+            addMessageToChat('bot', `📄 **Log content loaded!** (${logContent.length} characters)\n\nNow you can:\n• Type \`analyze\` to find matching patterns\n• Test patterns with \`test pattern: your_regex\`\n• Ask me about specific errors you see`);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLogStatus();
+            
+            // Focus on input
+            document.getElementById('chatInput').focus();
+        });
+    </script>
+</body>
+</html>

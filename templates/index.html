@@ -47,6 +47,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('upload_logs') }}">Analyze Logs</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('patterns') }}">Pattern Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('chat') }}">Chat Assistant</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -55,45 +61,55 @@
     <div class="hero-section text-center">
         <div class="container">
             <h1 class="display-4 mb-3">WPE Framework Crash Analysis</h1>
-            <p class="lead mb-4">Automated crash discovery and process identification for WPE Framework/Thunder</p>
-            <span class="phase-badge">Phase 1 Available</span>
+            <p class="lead mb-4">Enhanced automated crash discovery and multi-component ownership determination</p>
+            <p class="mb-4">Now with <strong>Dynamic Pattern Management</strong> and <strong>Interactive Chat Assistant</strong></p>
+            <span class="phase-badge">Enhanced Phase 1 & 2 + Pattern Management</span>
         </div>
     </div>
 
     <div class="container my-5">
         <div class="row">
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card feature-card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-search fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">Crash Discovery</h5>
-                        <p class="card-text">Automatically identify crashed processes, signals, and timestamps from log files.</p>
+                        <h5 class="card-title">Enhanced Crash Discovery</h5>
+                        <p class="card-text">Automatically identify crashes across all RDK components with dynamic pattern matching.</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card feature-card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-microchip fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">Process Identification</h5>
-                        <p class="card-text">Extract device information, MAC addresses, and image versions from crash logs.</p>
+                        <i class="fas fa-code-branch fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Dynamic Pattern Management</h5>
+                        <p class="card-text">Manage and update failure patterns for all RDK components through web interface.</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card feature-card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
-                        <h5 class="card-title">Analysis Report</h5>
-                        <p class="card-text">Generate detailed reports with confidence levels and meaningful log context.</p>
+                        <i class="fas fa-balance-scale fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">Multi-Component Analysis</h5>
+                        <p class="card-text">Determine ownership across Thunder, HAL, IARM, Media, Security, Network & System components.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-robot fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Interactive Chat Assistant</h5>
+                        <p class="card-text">Add patterns, analyze logs, and get component insights through natural language chat.</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="text-center my-5">
-            <h2>Current Phase: Crash Discovery & Process Identification</h2>
-            <p class="text-muted">Phase 1 focuses on extracting basic crash information from log files</p>
+            <h2>Current Phases: Crash Discovery & Ownership Analysis</h2>
+            <p class="text-muted">Phase 1 & 2 now available for complete crash analysis workflow</p>
             <a href="{{ url_for('upload_logs') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-upload"></i> Start Analysis
             </a>
@@ -120,7 +136,7 @@
                             <tr>
                                 <td><strong>Phase 2</strong></td>
                                 <td>Thunder vs Plugin Responsibility</td>
-                                <td><span class="badge bg-secondary">Coming Soon</span></td>
+                                <td><span class="badge bg-success">Available</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Phase 3</strong></td>
